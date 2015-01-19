@@ -4,6 +4,8 @@ rack-jquery-params
 A Rack middleware that bridges the discrepancy between jQuery.param and how Rack parses nested params within query
 strings and post bodies.
 
+[![Gem Version](https://badge.fury.io/rb/rack-jquery-params.svg)](http://badge.fury.io/rb/rack-jquery-params)
+
 If you use jQuery's get, post, put, or ajax methods then jQuery.param is run on your data. The problem is that jQuery.param
 turns this javascript object:
 
@@ -77,3 +79,8 @@ use Rack::JQueryParams :applies_to => :get
 ```ruby
 use Rack::JQueryParams :applies_to => [:get, :put, :delete]
 ```
+
+
+## License
+
+Please refer to [LICENSE.md](https://github.com/calebclark/rack-jquery-params/blob/master/LICENSE.md).
