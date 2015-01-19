@@ -1,23 +1,44 @@
 rack-jquery-params
 ===========
 
-A Rack middleware for bridging the discrepancy between jQuery.param and how Rack parses nested queries. Using
-jQuery.get/post/put/ajax/etc, will result in jQuery.param will be called on the data you pass. The final result is a
-query string that turns {test: [{this_is_an_object_inside_an_array:'yes'}]} into the following query string:
+A Rack middleware that bridges the discrepancy between jQuery.param and how Rack parses nested params within query
+strings and post bodies.
+
+If you use jQuery's get, post, put, or ajax methods then jQuery.param is run on your data. The problem is that jQuery.param
+turns this javascript object:
+
+ ```
+ {test: [{this_is_an_object_inside_an_array:'yes'}]}
+ ```
+
+into a query string that Rack cannot read correctly:
 
 ```
 test[0][this_is_an_object_inside_an_array]=yes
 ```
 
-The problem is that Rack::Utils.parse_nested_query reads test[0] as a hash and outputs the following params:
+Rack expects all arrays to be sent as empty brackets (i.e., "test[]"). It parses jQuery's "test[0]" as a hash, resulting
+in the following params:
 
-```
+```ruby
 {
-    "test" => {
-        "0" => {
-            "this_is_an_object_inside_an_array" => "yes"
+    :test => {
+        :0 => {
+            :this_is_an_object_inside_an_array => 'yes'
         }
     }
+}
+```
+
+This gem fixes the above params and converts it to:
+
+```ruby
+{
+    :test => [
+        {
+            :this_is_an_object_inside_an_array => 'yes'
+        }
+    ]
 }
 ```
 
@@ -25,16 +46,34 @@ The problem is that Rack::Utils.parse_nested_query reads test[0] as a hash and o
 
 Install the gem:
 
-  gem install rack-jquery-params
+```ruby
+gem install rack-jquery-params
+```
 
 In your Gemfile:
 
-  gem 'rack-jquery-params', :require => 'rack/jquery-params'
+```ruby
+gem 'rack-jquery-params', :require => 'rack/jquery-params'
+```
 
-You activate the functionality by including it your config.ru file:
+Activate by including it your config.ru file:
 
- ```
- use Rack::JQueryParams
- run Sinatra::Application
- ```
+```ruby
+use Rack::JQueryParams
+run Sinatra::Application
+```
 
+## Options
+
+By default the JQueryParams fix is applied to all http methods, however you can change this functionality by setting
+the applies_to option with your chosen http method:
+
+```ruby
+use Rack::JQueryParams :applies_to => :get
+```
+
+ You can also set applies_to to be an array of http methods:
+
+```ruby
+use Rack::JQueryParams :applies_to => [:get, :put, :delete]
+```

@@ -4,22 +4,11 @@ module Rack
   class JQueryParams
     include Rack::Utils
 
-    VALID_HTTP_METHODS = %w(HEAD PUT POST DELETE OPTIONS PATCH)
+    HTTP_METHODS = %w(GET PUT POST DELETE HEAD OPTIONS PATCH)
     ALL = 'ALL'
 
     def initialize(app, options={})
-      applies_to = []
-      if options[:apply_to].is_a?(Array)
-        options[:apply_to].each do |a|
-          a = a.to_s.upcase
-          break applies_to = [] if a == 'ALL'
-          applies_to << a if VALID_HTTP_METHODS.include?(a)
-        end
-      else
-        apply_to = options[:apply_to].to_s.upcase
-        applies_to = [apply_to] if VALID_HTTP_METHODS.include?(apply_to)
-      end
-      @applies_to = (applies_to.size > 0) ? applies_to : :all
+      @options = options
       @app = app
     end
 
@@ -28,18 +17,45 @@ module Rack
     def call(env)
       status, headers, response = @app.call(env)
 
-      self.class.fix(env, @applies_to)
+      self.class.fix(env, @options[:applies_to])
       [status, headers, response]
     end
 
-    def self.fix(env, applies_to)
-      if applies_to == :all or applies_to.include?(env['REQUEST_METHOD'])
-        env['rack.request.query_hash'].each do |key,value|
-          next if !value.is_a?(Hash)
-          next if !value.all? {|k,v| k =~ /^[0-9]+$/ }
-          env['rack.request.query_hash'][key] = value.sort.inject([]) {|result, v| result << v[1] }
+    def self.fix(env, valid_methods=:all)
+      valid_methods = extract_valid_methods(valid_methods)
+      return if valid_methods != :all and !valid_methods.include?(env['REQUEST_METHOD'])
+      env['rack.request.query_hash'].each {|k,p| env['rack.request.query_hash'][k] = fix_param(p) }
+      env['rack.request.form_hash'].each {|k,p| env['rack.request.form_hash'][k] = fix_param(p) }
+    end
+
+    def self.fix_param(param)
+      if param.is_a?(Hash)
+        if param.all?{|k,v| k =~ /^[0-9]+$/}
+          param.sort.inject([]){|result, v| result << fix_param(v[1]) }
+        else
+          param.each{|k,v| param[k] = fix_param(v)}
         end
+      elsif param.is_a?(Array)
+        param.each_with_index {|v,i| param[i] = fix_param(v) }
+        return param
+      else
+        return param
       end
+    end
+
+    def self.extract_valid_methods(object)
+      valid_methods = []
+      if object.is_a?(Array)
+        object.each do |a|
+          a = a.to_s.upcase
+          break valid_methods = [] if a == 'ALL'
+          valid_methods << a if HTTP_METHODS.include?(a)
+        end
+      else
+        method = object.to_s.upcase
+        valid_methods = [method] if HTTP_METHODS.include?(method)
+      end
+      (valid_methods.size > 0) ? valid_methods : :all
     end
 
   end

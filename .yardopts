@@ -1,0 +1,5 @@
+lib/**/*.rb
+--load ./.yardopts.rb
+--markup-provider=redcarpet
+--markup=markdown
+--readme README.md

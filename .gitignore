@@ -18,4 +18,5 @@ _yardoc
 doc/
 .DS_Store
 .idea/
+.idea/*
 Gemfile.lock

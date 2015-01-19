@@ -7,7 +7,7 @@ Gem::Specification.new do |gem|
   gem.name        = 'rack-jquery-params'
   gem.version     = Rack::JQueryParams::VERSION
   gem.date        = '2015-01-18'
-  gem.summary     = %q{A Rack middleware for bridging the discrepancy between jQuery.param and how Rack parses nested queries.}
+  gem.summary     = %q{Rack middleware that fixes the discrepancy between jQuery.param and how Rack parses nested queries.}
   gem.authors     = ['Caleb Clark']
   gem.email       = ['cclark@fanforce.com']
   gem.homepage    = 'http://github.com/calebclark/rack-jquery-params'
