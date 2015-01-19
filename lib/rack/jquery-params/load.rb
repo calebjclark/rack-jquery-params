@@ -24,8 +24,8 @@ module Rack
     def self.fix(env, valid_methods=:all)
       valid_methods = extract_valid_methods(valid_methods)
       return if valid_methods != :all and !valid_methods.include?(env['REQUEST_METHOD'])
-      env['rack.request.query_hash'].each {|k,p| env['rack.request.query_hash'][k] = fix_param(p) }
-      env['rack.request.form_hash'].each {|k,p| env['rack.request.form_hash'][k] = fix_param(p) }
+      fix_param(env['rack.request.query_hash'])
+      fix_param(env['rack.request.form_hash'])
     end
 
     def self.fix_param(param)
