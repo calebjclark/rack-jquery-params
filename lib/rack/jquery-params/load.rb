@@ -1,5 +1,6 @@
 require 'rack'
 
+# Loops through all params and convert the hashes to arrays only if all keys are comprised of integers.
 module Rack
   class JQueryParams
     include Rack::Utils
@@ -12,8 +13,6 @@ module Rack
       @app = app
     end
 
-    # Loops through all params and convert the hashes to arrays only if all keys are comprised of integers.
-    #
     def call(env)
       status, headers, response = @app.call(env)
 
@@ -24,22 +23,22 @@ module Rack
     def self.fix(env, valid_methods=:all)
       valid_methods = extract_valid_methods(valid_methods)
       return if valid_methods != :all and !valid_methods.include?(env['REQUEST_METHOD'])
-      fix_param(env['rack.request.query_hash'])
-      fix_param(env['rack.request.form_hash'])
+      fix_params(env['rack.request.query_hash'])
+      fix_params(env['rack.request.form_hash'])
     end
 
-    def self.fix_param(param)
-      if param.is_a?(Hash)
-        if param.all?{|k,v| k =~ /^[0-9]+$/}
-          param.sort.inject([]){|result, v| result << fix_param(v[1]) }
+    def self.fix_params(params)
+      if params.is_a?(Hash)
+        if params.all?{|k,v| k =~ /^[0-9]+$/}
+          params.sort.inject([]){|result, v| result << fix_params(v[1]) }
         else
-          param.each{|k,v| param[k] = fix_param(v)}
+          params.each{|k,v| params[k] = fix_params(v) }
         end
-      elsif param.is_a?(Array)
-        param.each_with_index {|v,i| param[i] = fix_param(v) }
-        return param
+      elsif params.is_a?(Array)
+        params.each_with_index {|v,i| params[i] = fix_params(v) }
+        return params
       else
-        return param
+        return params
       end
     end
 
