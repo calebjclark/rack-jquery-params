@@ -29,6 +29,7 @@ module Rack
 
     def self.fix_params(params)
       if params.is_a?(Hash)
+        return params if params.size == 0
         if params.all?{|k,v| k =~ /^[0-9]+$/}
           params.sort.inject([]){|result, v| result << fix_params(v[1]) }
         else
