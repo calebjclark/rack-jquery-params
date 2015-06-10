@@ -31,7 +31,13 @@ module Rack
       if params.is_a?(Hash)
         return params if params.size == 0
         if params.all?{|k,v| k =~ /^[0-9]+$/}
-          params.sort.inject([]){|result, v| result << fix_params(v[1]) }
+          sorted_params = params.sort
+          valid_index = nil
+          return params unless sorted_params.all? do |param|
+            (valid_index.nil?) ? valid_index=0 : valid_index+=1
+            param[0].to_i == valid_index
+          end
+          sorted_params.inject([]){|result, v| result << fix_params(v[1]) }
         else
           params.each{|k,v| params[k] = fix_params(v) }
         end
