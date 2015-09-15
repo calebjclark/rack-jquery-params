@@ -14,17 +14,22 @@ module Rack
     end
 
     def call(env)
-      status, headers, response = @app.call(env)
-
       self.class.fix(env, @options[:applies_to])
-      [status, headers, response]
+      @app.call(env)
     end
 
     def self.fix(env, valid_methods=:all)
       valid_methods = extract_valid_methods(valid_methods)
       return if valid_methods != :all and !valid_methods.include?(env['REQUEST_METHOD'])
       fix_params(env['rack.request.query_hash'])
-      fix_params(env['rack.request.form_hash'])
+      raw_rack_input = env['rack.input']
+      begin
+        params = Rack::Utils.parse_nested_query(env['rack.input'].read, '&')
+        fix_params(params)
+        env["rack.input"] = StringIO.new(Rack::Utils.build_nested_query(params))
+      rescue
+        env['rack.input'] = raw_rack_input
+      end
     end
 
     def self.fix_params(params)
