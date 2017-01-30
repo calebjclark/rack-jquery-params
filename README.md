@@ -71,13 +71,13 @@ By default the JQueryParams fix is applied to all http methods, however you can 
 the applies_to option with your chosen http method:
 
 ```ruby
-use Rack::JQueryParams :applies_to => :get
+use Rack::JQueryParams, :applies_to => :get
 ```
 
  You can also set applies_to to be an array of http methods:
 
 ```ruby
-use Rack::JQueryParams :applies_to => [:get, :put, :delete]
+use Rack::JQueryParams, :applies_to => [:get, :put, :delete]
 ```
 
 
